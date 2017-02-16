@@ -11,14 +11,9 @@ import GUI.FormularioJFrame;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import java.util.ArrayList;
-import utilidad.MensajeConsola;
+import tareas.enviarAConsola;
 import utilidad.Punto2D;
 
 /**
@@ -41,10 +36,11 @@ public class AgenteFormulario extends Agent {
         myGui.setVisible(true);
 
         //Registro de la Ontología
+        
         //Añadir tareas principales
         addBehaviour(new buscaAgente(this, 5000, "Consola", this, "AgenteFormulario"));
         addBehaviour(new buscaAgente(this, 5000, "Operacion", this, "AgenteFormulario"));
-        addBehaviour(new TareaEnvioConsola(this, 10000));
+        addBehaviour(new enviarAConsola(this, 10000, "AgenteFormulario", this));
     }
 
     @Override
@@ -78,8 +74,15 @@ public class AgenteFormulario extends Agent {
         myGui.activarEnviar(false);
     }
 
-    public class TareaEnvioOperacion extends OneShotBehaviour {
+    public AID[] getAgentesConsola() {
+        return agentesConsola;
+    }
 
+    public ArrayList<String> getMensajesPendientes() {
+        return mensajesPendientes;
+    }
+
+    public class TareaEnvioOperacion extends OneShotBehaviour {
         private Punto2D punto;
 
         public TareaEnvioOperacion(Punto2D punto) {
@@ -102,31 +105,6 @@ public class AgenteFormulario extends Agent {
             //Se añade el mensaje para la consola
             mensajesPendientes.add("Enviado a: " + agentesOperacion.length
                     + " agentes el punto: " + mensaje.getContent());
-        }
-    }
-
-    public class TareaEnvioConsola extends TickerBehaviour {
-
-        public TareaEnvioConsola(Agent a, long period) {
-            super(a, period);
-        }
-
-        @Override
-        protected void onTick() {
-            ACLMessage mensaje;
-            if (agentesConsola != null) {
-                if (!mensajesPendientes.isEmpty()) {
-                    mensaje = new ACLMessage(ACLMessage.INFORM);
-                    mensaje.setSender(myAgent.getAID());
-                    mensaje.addReceiver(agentesConsola[0]);
-                    mensaje.setContent(mensajesPendientes.remove(0));
-
-                    myAgent.send(mensaje);
-                } else {
-                    //Si queremos hacer algo si no tenemos mensajes
-                    //pendientes para enviar a la consola
-                }
-            }
         }
     }
 }
