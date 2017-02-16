@@ -5,6 +5,8 @@
  */
 package agentes;
 
+import tareas.buscaAgente;
+
 import GUI.FormularioJFrame;
 import jade.core.AID;
 import jade.core.Agent;
@@ -23,6 +25,7 @@ import utilidad.Punto2D;
  *
  */
 public class AgenteFormulario extends Agent {
+
     private FormularioJFrame myGui;
     private AID[] agentesConsola;
     private AID[] agentesOperacion;
@@ -32,17 +35,16 @@ public class AgenteFormulario extends Agent {
     protected void setup() {
         //Inicialización de variables
         mensajesPendientes = new ArrayList();
-        
+
         //Configuración del GUI
         myGui = new FormularioJFrame(this);
         myGui.setVisible(true);
 
         //Registro de la Ontología
-        
-        
         //Añadir tareas principales
-        addBehaviour(new TareaBuscarAgentes(this, 5000));
-        addBehaviour(new TareaEnvioConsola(this,10000));
+        addBehaviour(new buscaAgente(this, 5000, "Consola", this, "AgenteFormulario"));
+        addBehaviour(new buscaAgente(this, 5000, "Operacion", this, "AgenteFormulario"));
+        addBehaviour(new TareaEnvioConsola(this, 10000));
     }
 
     @Override
@@ -51,80 +53,38 @@ public class AgenteFormulario extends Agent {
         myGui.dispose();
         System.out.println("Finaliza la ejecución de " + this.getName());
     }
-    
+
     public void enviarPunto2D(Punto2D punto) {
         addBehaviour(new TareaEnvioOperacion(punto));
     }
-    
-    public class TareaBuscarAgentes extends TickerBehaviour {
-        //Se buscarán agentes consola y operación
-        public TareaBuscarAgentes(Agent a, long period) {
-            super(a, period);
-        }
 
-        @Override
-        protected void onTick() {
-            DFAgentDescription template;
-            ServiceDescription sd;
-            DFAgentDescription[] result;
-            
-            //Busca agentes consola
-            template = new DFAgentDescription();
-            sd = new ServiceDescription();
-            sd.setName("Consola");
-            template.addServices(sd);
-            
-            try {
-                result = DFService.search(myAgent, template); 
-                if (result.length > 0) {
-                    agentesConsola = new AID[result.length];
-                    for (int i = 0; i < result.length; ++i) {
-                        agentesConsola[i] = result[i].getName();
-                    }
-                }
-                else {
-                    //No se han encontrado agentes consola
-                    agentesConsola = null;
-                }
-            }
-            catch (FIPAException fe) {
-		fe.printStackTrace();
-            }
-            
-            //Busca agentes operación
-            template = new DFAgentDescription();
-            sd = new ServiceDescription();
-            sd.setName("Operacion");
-            template.addServices(sd);
-            
-            try {
-                result = DFService.search(myAgent, template); 
-                if (result.length > 0) {
-                    agentesOperacion = new AID[result.length];
-                    for (int i = 0; i < result.length; ++i) {
-                        agentesOperacion[i] = result[i].getName();
-                    }
-                    myGui.activarEnviar(true);
-                }
-                else {
-                    //No se han encontrado agentes operación
-                    agentesOperacion = null;
-                    myGui.activarEnviar(false);
-                } 
-            }
-            catch (FIPAException fe) {
-		fe.printStackTrace();
-            }
-        }
+    public void copiaListaConsola(AID[] agentes, int tam) {
+        agentesConsola = new AID[tam];
+        System.arraycopy(agentes, 0, agentesConsola, 0, tam);
     }
-    
+
+    public void listaConsolaNull() {
+        agentesConsola = null;
+    }
+
+    public void copiaListaOperacion(AID[] agentes, int tam) {
+        agentesOperacion = new AID[tam];
+        System.arraycopy(agentes, 0, agentesOperacion, 0, tam);
+        myGui.activarEnviar(true);
+    }
+
+    public void listaOperacionNull() {
+        agentesOperacion = null;
+        myGui.activarEnviar(false);
+    }
+
     public class TareaEnvioOperacion extends OneShotBehaviour {
+
         private Punto2D punto;
 
         public TareaEnvioOperacion(Punto2D punto) {
             this.punto = punto;
         }
-        
 
         @Override
         public void action() {
@@ -132,19 +92,19 @@ public class AgenteFormulario extends Agent {
             ACLMessage mensaje = new ACLMessage(ACLMessage.INFORM);
             mensaje.setSender(myAgent.getAID());
             //Se añaden todos los agentes operación
-            for (int i=0; i < agentesOperacion.length; i++) {
+            for (int i = 0; i < agentesOperacion.length; i++) {
                 mensaje.addReceiver(agentesOperacion[i]);
             }
             mensaje.setContent(punto.getX() + "," + punto.getY());
-            
+
             send(mensaje);
-            
+
             //Se añade el mensaje para la consola
-            mensajesPendientes.add("Enviado a: " + agentesOperacion.length +
-                    " agentes el punto: " + mensaje.getContent());
+            mensajesPendientes.add("Enviado a: " + agentesOperacion.length
+                    + " agentes el punto: " + mensaje.getContent());
         }
     }
-    
+
     public class TareaEnvioConsola extends TickerBehaviour {
 
         public TareaEnvioConsola(Agent a, long period) {
@@ -160,10 +120,9 @@ public class AgenteFormulario extends Agent {
                     mensaje.setSender(myAgent.getAID());
                     mensaje.addReceiver(agentesConsola[0]);
                     mensaje.setContent(mensajesPendientes.remove(0));
-            
+
                     myAgent.send(mensaje);
-                }
-                else {
+                } else {
                     //Si queremos hacer algo si no tenemos mensajes
                     //pendientes para enviar a la consola
                 }

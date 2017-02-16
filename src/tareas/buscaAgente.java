@@ -6,7 +6,7 @@
 package tareas;
 
 import agentes.AgenteOperacion;
-
+import agentes.AgenteFormulario;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -27,14 +27,23 @@ public class buscaAgente extends TickerBehaviour {
     private String tipoAgente;
 
     private AgenteOperacion agO;
+    private AgenteFormulario agF;
 
+    public buscaAgente(Agent a, long period, String tipoo, AgenteFormulario agFF, String tipoAgentee) {
+        super(a, period);
+        this.tipo = tipoo;
+        this.agF = agFF;
+        this.tipoAgente = tipoAgentee;
+    }
+    
     public buscaAgente(Agent a, long period, String tipoo, AgenteOperacion agOO, String tipoAgentee) {
         super(a, period);
         this.tipo = tipoo;
         this.agO = agOO;
-        this.tipo = tipoo;
         this.tipoAgente = tipoAgentee;
     }
+
+    
 
     @Override
     protected void onTick() {
@@ -51,12 +60,32 @@ public class buscaAgente extends TickerBehaviour {
                 }
                 if ("AgenteOperacion".equals(this.tipoAgente)) {
                     agO.copiaListaConsola(agentes, result.length);
+                } else {
+                    if ("AgenteFormulario".equals(this.tipoAgente)) {
+                        if ("Operacion".equals(tipo)) {
+                            agF.copiaListaOperacion(agentes, result.length);
+                        } else {
+                            if ("Consola".equals(tipo)) {
+                                agF.copiaListaConsola(agentes, result.length);
+                            }
+                        }
+                    }
                 }
             } else {
                 //No se han encontrado agentes
                 agentes = null;
                 if ("AgenteOperacion".equals(this.tipoAgente)) {
                     agO.listaConsolaNull();
+                } else {
+                    if ("AgenteFormulario".equals(this.tipoAgente)) {
+                        if ("Operacion".equals(tipo)) {
+                            this.agF.listaOperacionNull();
+                        } else {
+                            if ("Consola".equals(tipo)) {
+                                this.agF.listaConsolaNull();
+                            }
+                        }
+                    }
                 }
             }
         } catch (FIPAException fe) {
