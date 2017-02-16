@@ -5,6 +5,8 @@
  */
 package agentes;
 
+import tareas.buscaAgente;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -52,9 +54,18 @@ public class AgenteOperacion extends Agent {
 
         //Regisro de la Ontología
         //Añadir las tareas principales
-        addBehaviour(new TareaBuscarConsola(this, 5000));
+        addBehaviour(new buscaAgente(this, 5000, "Consola", this,"AgenteOperacion"));
         addBehaviour(new TareaRecepcionOperacion());
         addBehaviour(new TareaEnvioConsola(this, 10000));
+    }
+
+    public void copiaListaConsola(AID[] agentes, int tam) {
+        agentesConsola = new AID[tam];
+        System.arraycopy(agentes, 0, agentesConsola, 0, tam);
+    }
+
+    public void listaConsolaNull() {
+        agentesConsola = null;
     }
 
     @Override
@@ -96,36 +107,6 @@ public class AgenteOperacion extends Agent {
 
     }
 
-    public class TareaBuscarConsola extends TickerBehaviour {
-
-        //Se buscarán consolas 
-        public TareaBuscarConsola(Agent a, long period) {
-            super(a, period);
-        }
-
-        @Override
-        protected void onTick() {
-            //Busca agentes consola
-            DFAgentDescription template = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setName("Consola");
-            template.addServices(sd);
-            try {
-                DFAgentDescription[] result = DFService.search(myAgent, template);
-                if (result.length > 0) {
-                    agentesConsola = new AID[result.length];
-                    for (int i = 0; i < result.length; ++i) {
-                        agentesConsola[i] = result[i].getName();
-                    }
-                } else {
-                    //No se han encontrado agentes consola
-                    agentesConsola = null;
-                }
-            } catch (FIPAException fe) {
-                fe.printStackTrace();
-            }
-        }
-    }
 
     public class TareaRecepcionOperacion extends CyclicBehaviour {
 
