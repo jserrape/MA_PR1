@@ -10,8 +10,10 @@ import tareas.buscaAgente;
 import GUI.FormularioJFrame;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import tareas.enviarAConsola;
 import utilidad.Punto2D;
@@ -41,6 +43,7 @@ public class AgenteFormulario extends Agent {
         addBehaviour(new buscaAgente(this, 5000, "Consola", this, "AgenteFormulario"));
         addBehaviour(new buscaAgente(this, 5000, "Operacion", this, "AgenteFormulario"));
         addBehaviour(new enviarAConsola(this, 10000, "AgenteFormulario", this));
+        addBehaviour(new TareaRecepcionRespuesta());
     }
 
     @Override
@@ -105,6 +108,25 @@ public class AgenteFormulario extends Agent {
             //Se añade el mensaje para la consola
             mensajesPendientes.add("Enviado a: " + agentesOperacion.length
                     + " agentes el punto: " + mensaje.getContent());
+        }
+    }
+    
+    /**
+     * Tarea que revisa si hay confirmaciones de mensajes enviados
+     */
+    public class TareaRecepcionRespuesta extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            //Recepción de la respuesta
+            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+            ACLMessage mensaje = myAgent.receive(plantilla);
+
+            if (mensaje != null) {
+                System.out.println(mensaje.getContent());
+            } else {
+                block();
+            }
         }
     }
 }

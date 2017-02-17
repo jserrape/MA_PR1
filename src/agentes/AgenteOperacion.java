@@ -128,14 +128,30 @@ public class AgenteOperacion extends Agent {
             ACLMessage mensaje = myAgent.receive(plantilla);
 
             if (mensaje != null) {
-                System.out.println(mensaje.getContent()); 
+                System.out.println(mensaje.getContent());
             } else {
                 block();
             }
         }
     }
-    
-    
+
+    public class TareaEnviarRespuesta extends OneShotBehaviour {
+        private ACLMessage mensaje;
+
+        public TareaEnviarRespuesta(ACLMessage mensajee) {
+            this.mensaje = mensajee;
+        }
+
+        @Override
+        public void action() {
+            ACLMessage respuesta = mensaje.createReply();
+            respuesta.setPerformative(ACLMessage.CONFIRM);
+            respuesta.setContent("El agente " + this.getAgent().getName() + " ha recibido el mensaje de " + mensaje.getSender().getName());
+            send(respuesta);
+        }
+
+    }
+
     public class TareaRecepcionOperacion extends CyclicBehaviour {
 
         @Override
@@ -147,13 +163,14 @@ public class AgenteOperacion extends Agent {
             if (mensaje != null) {
                 //procesamos el mensaje
                 String[] contenido = mensaje.getContent().split(",");
-                
+
                 Punto2D punto = new Punto2D();
                 punto.setX(Double.parseDouble(contenido[0]));
                 punto.setY(Double.parseDouble(contenido[1]));
 
                 operacionesPendientes.add(punto);
 
+                addBehaviour(new TareaEnviarRespuesta(mensaje));
                 addBehaviour(new TareaRealizarOperacion());
 
             } else {
