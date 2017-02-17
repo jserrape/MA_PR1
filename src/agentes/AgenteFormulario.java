@@ -6,14 +6,13 @@
 package agentes;
 
 import tareas.buscaAgente;
+import tareas.TareaRecepcionRespuesta;
 
 import GUI.FormularioJFrame;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import tareas.enviarAConsola;
 import utilidad.Punto2D;
@@ -110,23 +109,5 @@ public class AgenteFormulario extends Agent {
                     + " agentes el punto: " + mensaje.getContent());
         }
     }
-    
-    /**
-     * Tarea que revisa si hay confirmaciones de mensajes enviados
-     */
-    public class TareaRecepcionRespuesta extends CyclicBehaviour {
-
-        @Override
-        public void action() {
-            //Recepción de la respuesta
-            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
-            ACLMessage mensaje = myAgent.receive(plantilla);
-
-            if (mensaje != null) {
-                System.out.println(mensaje.getContent());
-            } else {
-                block();
-            }
-        }
-    }
+   
 }

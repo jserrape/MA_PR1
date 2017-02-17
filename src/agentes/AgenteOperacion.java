@@ -6,6 +6,7 @@
 package agentes;
 
 import tareas.buscaAgente;
+import tareas.TareaRecepcionRespuesta;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -116,24 +117,6 @@ public class AgenteOperacion extends Agent {
 
     }
 
-    /**
-     * Tarea que revisa si hay confirmaciones de mensajes enviados
-     */
-    public class TareaRecepcionRespuesta extends CyclicBehaviour {
-
-        @Override
-        public void action() {
-            //Recepción de la respuesta
-            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
-            ACLMessage mensaje = myAgent.receive(plantilla);
-
-            if (mensaje != null) {
-                System.out.println(mensaje.getContent());
-            } else {
-                block();
-            }
-        }
-    }
 
     public class TareaEnviarRespuesta extends OneShotBehaviour {
         private ACLMessage mensaje;
