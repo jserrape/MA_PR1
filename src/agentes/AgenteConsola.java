@@ -116,6 +116,7 @@ public class AgenteConsola extends Agent {
 
     }
 
+    
     /**
      * Tarea que dado un mensaje, genera una respuesta para el emisor de este
      */
