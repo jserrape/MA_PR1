@@ -45,6 +45,7 @@ public class enviarAConsola extends TickerBehaviour {
         boolean notNULL = false, tienesMenPendientes = false;
         String mensajeP = null;
 
+        //Almacena los atributos dependiendo que tipo de agente sea
         if ("AgenteOperacion".equals(tipoAgente)) {
             if (agO.getAgentesConsola() != null) {
                 notNULL = true;
@@ -67,6 +68,7 @@ public class enviarAConsola extends TickerBehaviour {
             }
         }
         if (notNULL) {
+            //Si hay mensajes pendientes, crea genera un mensaje y lo envia
             if (tienesMenPendientes) {
                 mensaje = new ACLMessage(ACLMessage.INFORM);
                 mensaje.setSender(this.aid);
