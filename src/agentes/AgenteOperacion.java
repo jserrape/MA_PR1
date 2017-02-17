@@ -53,11 +53,11 @@ public class AgenteOperacion extends Agent {
         }
 
         //Regisro de la Ontología
-        
         //Añadir las tareas principales
-        addBehaviour(new buscaAgente(this, 5000, "Consola", this,"AgenteOperacion"));
+        addBehaviour(new buscaAgente(this, 5000, "Consola", this, "AgenteOperacion"));
         addBehaviour(new TareaRecepcionOperacion());
-        addBehaviour(new enviarAConsola(this, 10000,"AgenteOperacion",this));
+        addBehaviour(new TareaRecepcionRespuesta());
+        addBehaviour(new enviarAConsola(this, 10000, "AgenteOperacion", this));
     }
 
     public void copiaListaConsola(AID[] agentes, int tam) {
@@ -68,12 +68,12 @@ public class AgenteOperacion extends Agent {
     public void listaConsolaNull() {
         agentesConsola = null;
     }
-    
-    public AID[] getAgentesConsola(){
+
+    public AID[] getAgentesConsola() {
         return agentesConsola;
     }
-    
-    public ArrayList<String> getMensajesPendientes(){
+
+    public ArrayList<String> getMensajesPendientes() {
         return mensajesPendientes;
     }
 
@@ -116,7 +116,26 @@ public class AgenteOperacion extends Agent {
 
     }
 
+    /**
+     * Tarea que revisa si hay confirmaciones de mensajes enviados
+     */
+    public class TareaRecepcionRespuesta extends CyclicBehaviour {
 
+        @Override
+        public void action() {
+            //Recepción de la respuesta
+            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+            ACLMessage mensaje = myAgent.receive(plantilla);
+
+            if (mensaje != null) {
+                System.out.println(mensaje.getContent()); 
+            } else {
+                block();
+            }
+        }
+    }
+    
+    
     public class TareaRecepcionOperacion extends CyclicBehaviour {
 
         @Override
@@ -128,25 +147,23 @@ public class AgenteOperacion extends Agent {
             if (mensaje != null) {
                 //procesamos el mensaje
                 String[] contenido = mensaje.getContent().split(",");
-                if ("ok".equals(contenido[0])) {
-                    System.out.println(this.getAgent().getName() + ": " + mensaje.getSender().getName() + " ha recibido correctamente el mensaje");
-                } else {
-                    Punto2D punto = new Punto2D();
-                    punto.setX(Double.parseDouble(contenido[0]));
-                    punto.setY(Double.parseDouble(contenido[1]));
+                
+                Punto2D punto = new Punto2D();
+                punto.setX(Double.parseDouble(contenido[0]));
+                punto.setY(Double.parseDouble(contenido[1]));
 
-                    operacionesPendientes.add(punto);
+                operacionesPendientes.add(punto);
 
-                    addBehaviour(new TareaRealizarOperacion());
-                }
+                addBehaviour(new TareaRealizarOperacion());
+
             } else {
                 block();
             }
-
         }
     }
 
     public class TareaRealizarOperacion extends OneShotBehaviour {
+
         @Override
         public void action() {
             //Realizar una operacion pendiente y añadir el mensaje

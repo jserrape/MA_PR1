@@ -103,21 +103,35 @@ public class AgenteConsola extends Agent {
             MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             ACLMessage mensaje = myAgent.receive(plantilla);
             if (mensaje != null) {
-                //procesando respuesta  //<-----------------------------------------------------
-                ACLMessage respuesta = mensaje.createReply();
-                respuesta.setPerformative(ACLMessage.INFORM);
-                respuesta.setContent("ok");
-                send(respuesta);
-
                 //procesamos el mensaje
-                MensajeConsola mensajeConsola = new MensajeConsola(mensaje.getSender().getName(),
-                        mensaje.getContent());
+                MensajeConsola mensajeConsola = new MensajeConsola(mensaje.getSender().getName(),mensaje.getContent());
                 mensajesPendientes.add(mensajeConsola);
+                addBehaviour(new TareaEnviarRespuesta(mensaje));
                 addBehaviour(new TareaPresentarMensaje());
             } else {
                 block();
             }
 
+        }
+
+    }
+
+    /**
+     * Tarea que dado un mensaje, genera una respuesta para el emisor de este
+     */
+    public class TareaEnviarRespuesta extends OneShotBehaviour {
+        private ACLMessage mensaje;
+
+        public TareaEnviarRespuesta(ACLMessage mensajee) {
+            this.mensaje = mensajee;
+        }
+
+        @Override
+        public void action() {
+            ACLMessage respuesta = mensaje.createReply();
+            respuesta.setPerformative(ACLMessage.CONFIRM);
+            respuesta.setContent("El agente " + this.getAgent().getName() + " ha recibido el mensaje de " + mensaje.getSender().getName());
+            send(respuesta);
         }
 
     }
