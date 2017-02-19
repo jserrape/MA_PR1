@@ -5,14 +5,16 @@
  */
 package agentes;
 
+import GUI.ConsolaJFrame;
 import tareas.buscaAgente;
-import tareas.TareaRecepcionRespuesta;
 
 import GUI.FormularioJFrame;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import tareas.enviarAConsola;
 import utilidad.Punto2D;
@@ -27,17 +29,19 @@ public class AgenteFormulario extends Agent {
     private AID[] agentesOperacion;
     private ArrayList<String> mensajesPendientes;
 
+    private ConsolaJFrame gui;
+
     @Override
     protected void setup() {
         //Inicialización de variables
         mensajesPendientes = new ArrayList();
 
         //Configuración del GUI
+        gui = new ConsolaJFrame(this.getName());
         myGui = new FormularioJFrame(this);
         myGui.setVisible(true);
 
         //Registro de la Ontología
-        
         //Añadir tareas principales
         addBehaviour(new buscaAgente(this, 5000, "Consola", this, "AgenteFormulario"));
         addBehaviour(new buscaAgente(this, 5000, "Operacion", this, "AgenteFormulario"));
@@ -85,6 +89,7 @@ public class AgenteFormulario extends Agent {
     }
 
     public class TareaEnvioOperacion extends OneShotBehaviour {
+
         private Punto2D punto;
 
         public TareaEnvioOperacion(Punto2D punto) {
@@ -109,5 +114,21 @@ public class AgenteFormulario extends Agent {
                     + " agentes el punto: " + mensaje.getContent());
         }
     }
-   
+
+    public class TareaRecepcionRespuesta extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            //Recepción de la respuesta
+            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+            ACLMessage mensaje = myAgent.receive(plantilla);
+
+            if (mensaje != null) {
+                gui.presentarSalida("- " + mensaje.getContent());
+            } else {
+                block();
+            }
+        }
+    }
+
 }

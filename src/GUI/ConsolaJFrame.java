@@ -23,6 +23,7 @@ public class ConsolaJFrame extends javax.swing.JFrame {
         
         initComponents();
         this.nombreAgente = nombreAgente;
+        this.salida.setLineWrap(true);
     }
 
     public String getNombreAgente() {
@@ -36,6 +37,13 @@ public class ConsolaJFrame extends javax.swing.JFrame {
         salida.append(mensaje.toString());
     }
 
+    public void presentarSalida(String msg) {
+        if (isVisible() != true) {
+            setVisible(true);
+        }
+        salida.append(msg+"\n");
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

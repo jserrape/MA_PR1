@@ -5,8 +5,8 @@
  */
 package agentes;
 
+import GUI.ConsolaJFrame;
 import tareas.buscaAgente;
-import tareas.TareaRecepcionRespuesta;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -33,12 +33,15 @@ public class AgenteOperacion extends Agent {
     private ArrayList<Punto2D> operacionesPendientes;
     private Random rnd;
 
+    private ConsolaJFrame gui;
+    
     @Override
     protected void setup() {
         //Inicialización de variables
         mensajesPendientes = new ArrayList();
         operacionesPendientes = new ArrayList();
         rnd = new Random();
+        gui = new ConsolaJFrame(this.getName());
 
         //Registro en páginas Amarrillas
         DFAgentDescription dfd = new DFAgentDescription();
@@ -117,8 +120,8 @@ public class AgenteOperacion extends Agent {
 
     }
 
-
     public class TareaEnviarRespuesta extends OneShotBehaviour {
+
         private ACLMessage mensaje;
 
         public TareaEnviarRespuesta(ACLMessage mensajee) {
@@ -170,6 +173,22 @@ public class AgenteOperacion extends Agent {
             //para la consola
             Punto2D punto = operacionesPendientes.remove(0);
             mensajesPendientes.add(operacion(punto));
+        }
+    }
+
+    public class TareaRecepcionRespuesta extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            //Recepción de la respuesta
+            MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+            ACLMessage mensaje = myAgent.receive(plantilla);
+
+            if (mensaje != null) {
+                gui.presentarSalida("- " + mensaje.getContent());
+            } else {
+                block();
+            }
         }
     }
 }
